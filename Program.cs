@@ -1,28 +1,34 @@
-﻿
+
 //Main function
-void run(Int16[] Instructions)
+void run(sbyte[] Instructions)
 {
     //Storage
-    Int16 StorageInt = 0;
-    Int16 UserStorage = 0;
+    sbyte StorageInt = 0;
+    sbyte UserStorage = 0;
+    sbyte InputStorage = 0;
     
     //Next instruction variables
     bool SkipInstruction = false;
-    Int16 NextInstructionForced = 0;
+    sbyte NextInstructionForced = 0;
     
     //Loop variables
-    Int16 LoopInstruction = 0;
-    Int16 LoopIteration = -1;
-
-    //IF variables
-    Int16 IFFunction = -1;
-    
+    sbyte LoopInstruction = -1;
+    sbyte LoopIteration = -1;
     
     //just a for loop to run the instructions
-    foreach (Int16 CurrentInstructionRaw in Instructions)
+    foreach (sbyte CurrentInstructionRaw in Instructions)
     {
         //make copy of the Current instruction variable because the original cannot be modified
-        Int16 CurrentInstruction = CurrentInstructionRaw;
+        sbyte CurrentInstruction = CurrentInstructionRaw;
+        
+        if (StorageInt == 6)
+        {
+            sbyte number = sbyte.Parse(Console.ReadLine()!);
+
+            InputStorage = number;
+            StorageInt = 0;
+
+        }
         
         //Check if the next instruction is forced and if so, change the current instruction
         if (NextInstructionForced != 0)
@@ -62,16 +68,26 @@ void run(Int16[] Instructions)
         else if (UserStorage == LoopIteration)
         {
             LoopIteration = -1;
+            LoopInstruction = -1;
             StorageInt = 0;
         }
 
         //IF mode
         if (StorageInt == 4)
         {
+            StorageInt = 0;
+            
             if (UserStorage != 0)
             {
                 SkipInstruction = true;
             }
+        }
+
+        if (StorageInt == 5)
+        {
+            UserStorage += CurrentInstruction;
+            SkipInstruction = true;
+            StorageInt = 0;
         }
         
         
@@ -132,6 +148,30 @@ void run(Int16[] Instructions)
                 StorageInt = 4;
             }
 
+            //activate Add mode
+            else if (CurrentInstruction == 10)
+            {
+                StorageInt = 5;
+            }
+
+            //reset the user variable
+            else if (CurrentInstruction == 11)
+            {
+                UserStorage = 0;
+            }
+
+            //Enable Input mode for one instruction
+            else if (CurrentInstruction == 12)
+            {
+                StorageInt = 6;
+            }
+            
+            //Set the user variable to the input variable
+            else if (CurrentInstruction == 13)
+            {
+                UserStorage = InputStorage;
+            }
+
         }
         //Reset the SkipInstruction Variable
         SkipInstruction = false;
@@ -141,8 +181,7 @@ void run(Int16[] Instructions)
 
 /*
 
-The entire language uses 16 bit int variables, so the
-highest variable can only be up to 32767
+The entire language uses 8 bit int variables, so the variables can only be in a range of -128 to 127
 
 1 = Enable console output and make any instruction after be printed as a number
 2 = Disable any active mode that is currently active
@@ -153,12 +192,29 @@ highest variable can only be up to 32767
 7 = Clear the terminal
 8 = Pause execution for seconds specified by the user variable 
 9 = Activate IF mode, when in IF mode, the next instruction is the instruction that will run, if the user variable is 0
+10 = activate Add mode adding the next instruction to the user variable
+11 = Reset the user variable
+12 = Activate input for one iteration
+13 = set the user variable to the input variable
 
 */
 
 //Instructions
-Int16[] InstructionList = {1, 5, 2, 3, 100, 5, 1, 0, 0, 2, 6, 7, 3, 5, 3, 0, 6, 9, 1, 5};
+sbyte[] InstructionList = {12, 13, 6};
 
+sbyte[] program =
+{
+    12,       // Get input
+    13,       // Copy input to UserStorage
+
+    9,        // If UserStorage is zero...
+    1,        // ...activate print mode
+
+    100,      // Printed only if print mode activated
+    2         // End print mode
+};
+
+sbyte[] TestProgram = {1, 5, 2, 3, 100, 5, 1, 0, 0, 2, 6, 7, 3, 5, 3, 0, 6, 9, 1, 5, 2, 10, -2, 6, 11, 6};
 
 //start the execution
-run(InstructionList);
+run(program);
