@@ -1,38 +1,40 @@
+string[] AsciiChar = {" ", "!", "", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "@", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "", "", "", "^", "_", "`", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "{", "|", "}", "~"};
 
 //Main function
-void run(sbyte[] Instructions)
+void run(int[] Instructions)
 {
     //Storage
-    sbyte StorageInt = 0;
-    sbyte UserStorage = 0;
-    sbyte InputStorage = 0;
-    sbyte[] UserMemory = new sbyte[10];
+    int StorageInt = 0;
+    int UserStorage = 0;
+    int InputStorage = 0;
+    int[] UserMemory = new int[10];
+    string OutputString = "";
 
     //Memory Change variables
     bool ChangingUserMemory = false;
     bool NeededValue = false;
-    sbyte[] Values = {-1, -1};
+    int[] Values = {-1, -1};
     
     //Next instruction variables
     bool SkipInstruction = false;
-    sbyte NextInstructionForced = 0;
+    int NextInstructionForced = 0;
     bool SkipStorageIntExecution = false;
     
     //Loop variables
-    sbyte RepeatCount = 0;
-    sbyte RepeatInstruction = 0;
-    sbyte RepeatedI = 0;
-    sbyte RepeatedCount = 0;
-    sbyte GlobalI = 0;
+    int RepeatCount = 0;
+    int RepeatInstruction = 0;
+    int RepeatedI = 0;
+    int RepeatedCount = 0;
+    int GlobalI = 0;
     
     //just a for loop to run the instructions
     while (GlobalI+1 <= Instructions.Length)
     {
-        sbyte CurrentInstructionRaw = Instructions[GlobalI];
+        int CurrentInstructionRaw = Instructions[GlobalI];
         GlobalI++;
 
         //make copy of the Current instruction variable because the original cannot be modified
-        sbyte CurrentInstruction = CurrentInstructionRaw;
+        int CurrentInstruction = CurrentInstructionRaw;
         
         
         //Check if the Storage int should be skipped and if so, return false
@@ -40,8 +42,7 @@ void run(sbyte[] Instructions)
         {
             if (StorageInt == 6)
             {
-                Console.SetCursorPosition(0, 0);
-                sbyte number = sbyte.Parse(Console.ReadLine()!);
+                int number = int.Parse(Console.ReadLine()!);
 
                 InputStorage = number;
                 StorageInt = 0;
@@ -88,7 +89,7 @@ void run(sbyte[] Instructions)
                 CurrentInstruction = RepeatInstruction;
                 GlobalI -= 1;
             }
-            else if (RepeatedCount >= RepeatCount)
+            else if (RepeatedI != 0 && RepeatedCount >= RepeatCount)
             {
                 StorageInt = 0;
 
@@ -134,13 +135,38 @@ void run(sbyte[] Instructions)
 
                 NeededValue = false;
                 ChangingUserMemory = false;
-                Values = new sbyte[] {-1, -1};
+                Values = new int[] {-1, -1};
                 StorageInt = 0;
             }
 
             if (StorageInt == 8)
             {
                 UserStorage = UserMemory[CurrentInstruction];
+                SkipInstruction = true;
+                StorageInt = 0;
+            }
+
+            if (StorageInt == 9)
+            {
+                UserStorage += UserMemory[CurrentInstruction];
+                SkipInstruction = true;
+                StorageInt = 0;
+            }
+
+            if (StorageInt == 10)
+            {
+                OutputString += AsciiChar[CurrentInstruction];
+                SkipInstruction = true;
+                StorageInt = 0;
+            }
+
+            if (StorageInt == 11)
+            {
+                if (UserStorage == 0)
+                {
+                    GlobalI = CurrentInstruction;
+                }
+
                 SkipInstruction = true;
                 StorageInt = 0;
             }
@@ -257,6 +283,43 @@ void run(sbyte[] Instructions)
                 StorageInt = 8;
             }
 
+            //Add user memory position to the user variable
+            else if (CurrentInstruction == 18)
+            {
+                StorageInt = 9;
+            }
+
+            //Add input storage to the user variable
+            else if (CurrentInstruction == 19)
+            {
+                UserStorage += InputStorage;
+            }
+
+
+            //Add a letter to the output string variable
+            else if (CurrentInstruction == 20)
+            {
+                StorageInt = 10;
+            }
+
+            //Print the output string
+            else if (CurrentInstruction == 21)
+            {
+                Console.WriteLine(OutputString);
+            }
+
+            //reset the output string
+            else if (CurrentInstruction == 22)
+            {
+                OutputString = "";
+            }
+
+
+            //New if
+            else if (CurrentInstruction == 23)
+            {
+                StorageInt = 11;
+            }
         }
         //Reset the SkipInstruction Variable
         SkipInstruction = false;
@@ -265,16 +328,16 @@ void run(sbyte[] Instructions)
 }
 
 
-sbyte[] ConvertToInstructions(string[] StringInstructionList)
+int[] ConvertToInstructions(string[] StringInstructionList)
 {
-    sbyte[] FinalExport = new sbyte[StringInstructionList.Length];
+    int[] FinalExport = new int[StringInstructionList.Length];
     
     for (int i=0; StringInstructionList.Length > i; i++)
     {
         string InstructionString = StringInstructionList[i];
         
         if (InstructionString.StartsWith("R") &&
-            sbyte.TryParse(InstructionString[1..], out sbyte rawValue))
+            int.TryParse(InstructionString[1..], out int rawValue))
         {
             FinalExport[i] = rawValue;
             continue;
@@ -352,6 +415,30 @@ sbyte[] ConvertToInstructions(string[] StringInstructionList)
         {
             FinalExport[i] = 17;
         }
+        else if (InstructionString == "ADM")
+        {
+            FinalExport[i] = 18;
+        }
+        else if (InstructionString == "ADI")
+        {
+            FinalExport[i] = 19;
+        }
+        else if (InstructionString == "ASC")
+        {
+            FinalExport[i] = 20;
+        }
+        else if (InstructionString == "POS")
+        {
+            FinalExport[i] = 21;
+        }
+        else if (InstructionString == "ROS")
+        {
+            FinalExport[i] = 22;
+        }
+        else if (InstructionString == "JIZ")
+        {
+            FinalExport[i] = 23;
+        }
     }
 
     return FinalExport;
@@ -359,12 +446,9 @@ sbyte[] ConvertToInstructions(string[] StringInstructionList)
 
 
 
-
-
 /*
 
-The entire language uses 8 bit int variables, so the variables can only be in a range of -128 to 127
-
+Also the list of ascii letters had to be altered to work in c# see the ascii variable at the top of the script for more info
 
 Raw instruction commands:
 
@@ -385,7 +469,12 @@ Raw instruction commands:
 15 = Jump to the instruction saved in the user variable
 16 = Set a value in user memory based on the next Instruction as position and the one after as the new value
 17 = Set the user variable to a position in the user memory based on the next instruction
-
+18 = Add a position in the user memory to the user variable
+19 = Add the input variable to the user variable
+20 = Add an ascii letter to the output string variable
+21 = Print the output string variable
+22 = Reset the Output string variable
+23 = Jump to a location if the user variable is zero
 
 String instructions:
 
@@ -406,30 +495,24 @@ SKP = Skip the next storage variable check
 JMP = Jump to the instruction saved in the user variable
 CMR = Set a value in user memory based on the next Instruction as position and the one after as the new value
 GMR = Set the user variable to a position in the user memory based on the next instruction
-
+ADM = Add a position in the user memory to the user variable
+ADI = Add the input variable to the user variable
+ASC = Add an ascii letter to the output string variable
+POS = Print the output string variable
+ROS = Reset the Output string variable
+JIZ = Jump to a location if the user variable is zero
 
 */
 
-
-//string instruction tests
-
-
-string[] StringInstructions = 
+string[] StringInstructions =
 {
-"CLS",
-"OUT", "R3", "DEL",
-
-"RES"
 
 };
 
-//Convert the string array to an sbyte array
-sbyte[] StringInstructionTest = ConvertToInstructions(StringInstructions);
 
-//Raw Instructions
-sbyte[] InstructionList = {1, 3};
 
-sbyte[] TestProgram = {1, 5, 2, 3, 100, 5, 1, 0, 0, 2, 6, 7, 3, 5, 3, 0, 6, 9, 1, 5, 2, 10, -2, 6, 11, 6};
+//Convert the string array to an int array
+int[] StringInstructionTest = ConvertToInstructions(StringInstructions);
 
 //start the execution
 run(StringInstructionTest);
